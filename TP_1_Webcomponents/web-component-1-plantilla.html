@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABM (CRUD) con WebComponent - Versión 2.0</title>
+</head>
+<body>
+
+<x-abm-crud></x-abm-crud>
+
+<script>
+    console.log('Introducción a WebComponents');
+    
+    class ABMCrud extends HTMLElement {
+        constructor() {
+            super();
+            this._title = document.createElement('h2');
+            this._title.innerText = 'Seleccione una opción:';
+            this._buttonList = document.createElement('button');
+            this._buttonList.innerText = 'Listar';
+            this._buttonCreate = document.createElement('button');
+            this._buttonCreate.innerText = 'Crear';
+            this._buttonEdit = document.createElement('button');
+            this._buttonEdit.innerText = 'Editar';
+            this._buttonDelete = document.createElement('button');
+            this._buttonDelete.innerText = 'Eliminar';
+    
+            this._buttonList.addEventListener('click', this.listData.bind(this));
+            this._buttonCreate.addEventListener('click', this.createData.bind(this));
+            this._buttonEdit.addEventListener('click', this.editData.bind(this));
+            this._buttonDelete.addEventListener('click', this.deleteData.bind(this));
+    
+            this._table = document.createElement('table');
+            this._table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Saldo</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+    
+            this._data = [];
+    
+            this.appendChild(this._title);
+            this.appendChild(this._buttonList);
+            this.appendChild(this._buttonCreate);
+            this.appendChild(this._buttonEdit);
+            this.appendChild(this._buttonDelete);
+            this.appendChild(this._table);
+        }
+    
+        listData() {
+            // Limpiar la tabla antes de llenarla
+            this._table.querySelector('tbody').innerHTML = '';
+        
+            // Realizar la solicitud para obtener todos los usuarios
+            fetch('./procesos/contactos/listarContactos.php')
+                .then(response => response.json())
+                .then(data => {
+                    // Verificar si se recibieron datos
+                    if (Array.isArray(data)) {
+                        // Iterar sobre los datos y agregar filas a la tabla
+                        data.forEach(user => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${user.ID}</td>
+                                <td>${user.userName}</td>
+                                <td>${user.saldo}</td>
+                            `;
+                            this._table.querySelector('tbody').appendChild(row);
+                        });
+                    } else {
+                        console.error('Error: No se recibieron datos válidos.');
+                    }
+                })
+                .catch(error => console.error('Error al cargar los datos:', error));
+        }
+        
+        createData() {
+            // Pedir al usuario el nombre de usuario y el saldo
+            const username = prompt('Ingrese el nombre de usuario:');
+            const saldo = prompt('Ingrese el saldo:');
+        
+            // Verificar si el usuario ingresó valores válidos
+            if (username && saldo) {
+                // Crear un objeto con los datos a enviar al servidor
+                const data = {
+                    userName: username,
+                    saldo: saldo
+                };
+        
+                // Enviar los datos al servidor para agregar un nuevo contacto
+                fetch('./procesos/contactos/agregarContacto.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                })
+                .then(response => response.text())
+                .then(result => {
+                    // Verificar si la inserción fue exitosa
+                    if (result === 'true') {
+                        // Recargar los datos para actualizar la tabla
+                        this.listData();
+                    } else {
+                        console.error('Error al agregar usuario:', result);
+                    }
+                })
+                .catch(error => console.error('Error al agregar usuario:', error));
+            } else {
+                console.error('Error: Debe ingresar un nombre de usuario y un saldo válidos.');
+            }
+        }
+             
+        editData() {
+            // Solicitar al usuario el ID del contacto a editar
+            const contactId = prompt('Ingrese el ID del contacto a editar:');
+        
+            // Verificar si se ingresó un ID válido
+            if (contactId !== null && contactId.trim() !== '') {
+                // Realizar la solicitud para obtener los datos del contacto a editar
+                fetch(`./procesos/contactos/obtenerDatosContacto.php?id=${contactId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Verificar si se recibieron datos válidos
+                        if (data.hasOwnProperty('error')) {
+                            console.error('Error al obtener datos del contacto:', data.error);
+                        } else {
+                            // Mostrar los datos del contacto en un formulario para edición
+                            const username = prompt('Ingrese el nuevo nombre de usuario:', data.userName);
+                            const saldo = prompt('Ingrese el nuevo saldo:', data.saldo);
+        
+                            // Verificar si el usuario ingresó valores válidos
+                            if (username !== null && saldo !== null) {
+                                // Crear un objeto con los datos actualizados
+                                const updatedData = {
+                                    ID: contactId,
+                                    userName: username,
+                                    saldo: saldo
+                                };
+        
+                                // Enviar los datos actualizados al servidor para la edición
+                                fetch('./procesos/contactos/actualizarContacto.php', {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify(updatedData),
+                                })
+                                .then(response => response.json())
+                                .then(result => {
+                                    // Verificar si la actualización fue exitosa
+                                    if (result.hasOwnProperty('success') && result.success === true) {
+                                        // Recargar los datos para actualizar la tabla
+                                        this.listData();
+                                    } else {
+                                        console.error('Error al editar usuario:', result.error);
+                                    }
+                                })
+                                .catch(error => console.error('Error al editar usuario:', error));
+                            } else {
+                                console.error('Error: Debe ingresar un nombre de usuario y un saldo válidos.');
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error al obtener datos del contacto:', error));
+            } else {
+                console.error('Error: Debe ingresar un ID de contacto válido.');
+            }
+        }        
+                  
+        deleteData() {
+            // Solicitar al usuario el ID del contacto a eliminar
+            const contactId = prompt('Ingrese el ID del contacto a eliminar:');
+        
+            // Verificar si se ingresó un ID válido
+            if (contactId !== null && contactId.trim() !== '') {
+                // Confirmar con el usuario antes de eliminar
+                const confirmation = confirm('¿Está seguro de que desea eliminar este contacto?');
+        
+                // Si el usuario confirma, proceder con la eliminación
+                if (confirmation) {
+                    // Enviar solicitud al servidor para eliminar el contacto
+                    fetch('./procesos/contactos/eliminarContacto.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ ID: contactId }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Verificar si la eliminación fue exitosa
+                        if (data.success) {
+                            // Mostrar un mensaje de éxito
+                            alert('El contacto ha sido eliminado exitosamente.');
+                            // Recargar los datos para actualizar la tabla
+                            this.listData();
+                        } else {
+                            // Mostrar un mensaje de error si la eliminación falló
+                            alert('Error al eliminar el contacto: ' + data.error);
+                        }
+                    })
+                    .catch(error => console.error('Error al eliminar contacto:', error));
+                }
+            } else {
+                console.error('Error: Debe ingresar un ID de contacto válido.');
+            }
+        }
+                                   
+        connectedCallback() {
+            // Al ser la primera llamada, cargar los datos al inicio
+            this.listData();
+        }
+    }
+    
+    customElements.define('x-abm-crud', ABMCrud);
+    </script>
+    
+</body>
+</html>
