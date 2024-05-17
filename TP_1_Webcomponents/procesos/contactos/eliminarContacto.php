@@ -11,7 +11,7 @@
 		$contactos = new Contactos();
 
 		// Obtener los datos del contacto
-		$contacto = $contactos->obtenerDatosContacto($datos['ID']);
+		$contacto = $contactos->eliminarContacto($datos['ID']);
 
 		// Devolver los datos del contacto como JSON
 		echo json_encode($contacto);

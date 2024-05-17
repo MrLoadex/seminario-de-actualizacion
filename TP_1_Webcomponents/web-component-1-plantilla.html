@@ -101,14 +101,14 @@
                     },
                     body: JSON.stringify(data),
                 })
-                .then(response => response.text())
+                .then(response => response.json()) // Parsear la respuesta como JSON
                 .then(result => {
                     // Verificar si la inserción fue exitosa
-                    if (result === 'true') {
+                    if (result.success) {
                         // Recargar los datos para actualizar la tabla
                         this.listData();
                     } else {
-                        console.error('Error al agregar usuario:', result);
+                        console.error('Error al agregar usuario:', result.error);
                     }
                 })
                 .catch(error => console.error('Error al agregar usuario:', error));
@@ -116,6 +116,7 @@
                 console.error('Error: Debe ingresar un nombre de usuario y un saldo válidos.');
             }
         }
+        
              
         editData() {
             // Solicitar al usuario el ID del contacto a editar
@@ -193,25 +194,30 @@
                         },
                         body: JSON.stringify({ ID: contactId }),
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Verificar si la eliminación fue exitosa
-                        if (data.success) {
-                            // Mostrar un mensaje de éxito
-                            alert('El contacto ha sido eliminado exitosamente.');
-                            // Recargar los datos para actualizar la tabla
-                            this.listData();
-                        } else {
-                            // Mostrar un mensaje de error si la eliminación falló
-                            alert('Error al eliminar el contacto: ' + data.error);
+                    .then(response => {
+                        // Verificar el estado de la respuesta
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
                         }
+                        // La eliminación fue exitosa pero no hay datos en la respuesta
+                        return response.text();
                     })
-                    .catch(error => console.error('Error al eliminar contacto:', error));
+                    .then(result => {
+                        // Mostrar un mensaje de éxito
+                        alert('El contacto ha sido eliminado exitosamente.');
+                        // Recargar los datos para actualizar la tabla
+                        this.listData();
+                    })
+                    .catch(error => {
+                        console.error('Error al eliminar contacto:', error.message);
+                        // Mostrar un mensaje de error genérico
+                        alert('Error al eliminar el contacto: ' + error.message);
+                    });
                 }
             } else {
                 console.error('Error: Debe ingresar un ID de contacto válido.');
             }
-        }
+        }        
                                    
         connectedCallback() {
             // Al ser la primera llamada, cargar los datos al inicio
