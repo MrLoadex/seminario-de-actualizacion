@@ -84,6 +84,7 @@
             // Botones de usuario
             this._buttonCreateUser = this._createButton('Crear Usuario');
             this._buttonCreateUserTeamLink = this._createButton('Vincular Uusario y Equipo');
+            this._buttonDelUser = this._createButton('Eliminar Usuario');
             // Botones de Equipo
             this._buttonCreateTeam= this._createButton('Crear Equipo');
             // Botones de Accion
@@ -97,8 +98,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Nombre de usuario</th>
-                        <th>Equipo</th>
+                        <th>Nombre de usuario</th>  
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -136,6 +136,17 @@
                 </thead>
                 <tbody></tbody>
             `;
+            // Tabla Usuarios_Equipos
+            this._user_team_table = document.createElement('table');
+            this._user_team_table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Usuarios</th>
+                        <th>Equipos</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
 
             // Agregar eventos a los botones
             this._buttonRefresh.addEventListener('click', this.listData.bind(this));
@@ -155,7 +166,7 @@
             this.appendChild(this._buttonRefresh);
             //User elements
             this.appendChild(this._buttonCreateUser);
-            this.appendChild(this._buttonCreateUserTeamLink);
+            this.appendChild(this._buttonDelUser);
             this.appendChild(this._user_table);
             // Team elements
             this.appendChild(this._buttonCreateTeam);
@@ -163,6 +174,9 @@
             // Actions elements
             this.appendChild(this._buttonCreateAction);
             this.appendChild(this._action_table);
+            // Users_Teams elements
+            this.appendChild(this._buttonCreateUserTeamLink);
+            this.appendChild(this._user_team_table);
             // Teams_Actions elements
             this.appendChild(this._buttonCreateTeamActionLink);
             this.appendChild(this._team_action_table);
@@ -173,12 +187,12 @@
             button.innerText = label;
             button.className = 'crud-button'; // Usar la clase CSS para el estilo
             return button;
-        }
-        
-        getTeamName(teamID) {
+        }    
+        // Geters
+        getUserName(userID) {
             return new Promise((resolve, reject) => {
-                if (teamID !== null && teamID.trim() !== '') {
-                    fetch(`./procesos/Teams/getTeamData.php?id=${teamID}`)
+                if (typeof userID === 'string' && userID.trim() !== '') {
+                    fetch(`./procesos/contactos/getUserName.php?id=${userID}`)
                         .then(response => {
                             if (!response.ok) {
                                 throw new Error('Error en la respuesta de la red');
@@ -187,21 +201,24 @@
                         })
                         .then(data => {
                             if (data.error) {
-                                resolve("Sin Equipo");
+                                resolve("Sin Usuario");
                             } else {
                                 resolve(data.name);
                             }
                         })
                         .catch(error => {
-                            console.error('Error al obtener datos del equipo:', error);
-                            resolve("Sin Equipo");
+                            console.error('Error al obtener datos del usuario:', error);
+                            resolve("Sin Usuario");
                         });
                 } else {
-                    console.warn('Advertencia: Debe ingresar un ID de equipo válido.');
-                    resolve("Sin Equipo");
+                    const errorMsg = 'Error: Debe ingresar un ID de usuario válido.';
+                    console.error(errorMsg);
+                    resolve("Sin Usuario");
                 }
             });
         }
+        
+              
         getActionName(actionID) {
             return new Promise((resolve, reject) => {
                 if (actionID !== null && actionID.trim() !== '') {
@@ -230,42 +247,66 @@
                 }
             });
         }
-
+        getTeamName(teamID) {
+            return new Promise((resolve, reject) => {
+                if (teamID !== null && teamID.trim() !== '') {
+                    fetch(`./procesos/Teams/getTeamData.php?id=${teamID}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Error en la respuesta de la red');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.error) {
+                                resolve("Sin Equipo");
+                            } else {
+                                resolve(data.name);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error al obtener datos del equipo:', error);
+                            resolve("Sin Equipo");
+                        });
+                } else {
+                    console.warn('Advertencia: Debe ingresar un ID de equipo válido.');
+                    resolve("Sin Equipo");
+                }
+            });
+        }
         // Método para listar datos
         listData() {
             this.listUsers();
             this.listTeams();
             this.listActions(); 
+            this.listUsersTeams(); 
             this.listTeamsActions(); 
         }        
         listUsers() {
             // Limpiar la tabla antes de llenarla
             this._user_table.querySelector('tbody').innerHTML = '';
+        
             // Realizar la solicitud para obtener todos los usuarios
             fetch('./procesos/contactos/listUsers.php')
-            .then(response => response.json())
-            .then(data => {
+                .then(response => response.json())
+                .then(data => {
                     // Verificar si se recibieron datos
                     if (Array.isArray(data)) {
                         // Iterar sobre los datos y agregar filas a la tabla
                         data.forEach(user => {
-                            this.getTeamName(user.ID_team)
-                                .then(teamName => {
-                                    const row = document.createElement('tr');
-                                    row.innerHTML = `
-                                        <td>${user.ID}</td>
-                                        <td>${user.name}</td>
-                                        <td>${teamName}</td>
-                                    `;
-                                    this._user_table.querySelector('tbody').appendChild(row);
-                                }) 
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${user.ID}</td>
+                                <td>${user.name}</td>
+                            `;
+                            this._user_table.querySelector('tbody').appendChild(row);
                         });
                     } else {
                         console.error('Error: No se recibieron datos válidos.');
                     }
                 })
                 .catch(error => console.error('Error al cargar los datos:', error));
-        }
+        }      
         listTeams() {
             // Limpiar la tabla antes de llenarla
             this._team_table.querySelector('tbody').innerHTML = '';
@@ -314,6 +355,48 @@
                 })
                 .catch(error => console.error('Error al cargar los datos:', error));
         }
+        listUsersTeams() {
+            // Limpiar la tabla antes de llenarla
+            this._user_team_table.querySelector('tbody').innerHTML = '';
+        
+            // Realizar la solicitud para obtener todos los vínculos de usuarios con equipos
+            fetch('./procesos/UserTeam/listUserTeams.php')
+                .then(response => response.json())
+                .then(data => {
+                    // Verificar si se recibieron datos
+                    if (Array.isArray(data)) {
+                        // Iterar sobre los datos y agregar filas a la tabla
+                        data.forEach(user_team => {
+                            Promise.all([
+                                this.getUserName(user_team.ID_user),
+                                this.getTeamName(user_team.ID_team)
+                            ])
+                            .then(([userName, teamName]) => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${userName}</td>
+                                    <td>${teamName}</td>
+                                `;
+                                this._user_team_table.querySelector('tbody').appendChild(row);
+                            })
+                            .catch(error => {
+                                console.error('Error al obtener los datos:', error);
+                                // Si falla la obtención del nombre del equipo o del usuario, aún agregamos la fila con los IDs
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${user_team.ID_user}</td>
+                                    <td>${user_team.ID_team}</td>
+                                `;
+                                this._user_team_table.querySelector('tbody').appendChild(row);
+                            });
+                        });
+                    } else {
+                        console.error('Error: No se recibieron datos válidos.');
+                    }
+                })
+                .catch(error => console.error('Error al cargar los datos:', error));
+        }
+        
         listTeamsActions() {
             // Limpiar la tabla antes de llenarla
             this._team_action_table.querySelector('tbody').innerHTML = '';
@@ -355,20 +438,17 @@
                 })
                 .catch(error => console.error('Error al cargar los datos:', error));
         }
-        
         //////////////////////////////////////////////// METODOS DE USUARIO
         // Método para crear datos
         createUser() {
            const username = prompt('Ingrese el nombre de usuario:');
-            const IDteam = prompt('Ingrese el ID del equipo al que pertenece:');
 
-            if (username && IDteam) {
+            if (username) {
                 const data = {
                     name: username,
-                    ID_team: IDteam
                 };
 
-                fetch('./procesos/contactos/addUser.php', {
+                fetch('./procesos/contactos/createUser.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -388,7 +468,6 @@
                 console.error('Error: Debe ingresar un nombre de usuario y un saldo válidos.');
             }
         }
-
         //////////////////////////////////////////////// METODOS DE EQUIPO
         // Método para crear datos
         createTeam() 
@@ -420,7 +499,6 @@
                 console.error('Error: Debe ingresar un nombre de team válido.');
             }
         }
-
         //////////////////////////////////////////////// METODOS DE ACCION
         // Método para crear datos
         createAction() {
@@ -453,20 +531,53 @@
                 }
             }
         }
-
         // Método para crear datos
-        createTeamActionLink() {
+        createTeamActionLink()
+        {
+            
+            const teamID = prompt('Ingrese el ID del equipo');
+            const actionID = prompt('Ingrese el ID de la accion');
+        
+            if (teamID && actionID) {
+                const data = {
+                    ID_team: teamID,    
+                    ID_action: actionID,
+                };
+
+                fetch('./procesos/Teams_Actions/addTeamActionLink.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        this.listData();
+                    } else {
+                        console.error('Error al vincular la accion y quipo:', result.error);
+                    }
+                })
+                .catch(error => console.error('Error al vincular la accion y quipo:', error));
+            } else {
+                console.error('Error: Debe ingresar un nombre de accion y equipo válidos.');
+            }
+        
+        }    
+        createUserTeamLink()
             {
+            
+                const userID = prompt('Ingrese el ID del usuario');
                 const teamID = prompt('Ingrese el ID del equipo');
-                const actionID = prompt('Ingrese el ID de la accion');
-         
-                if (teamID && actionID) {
+            
+                if (userID && teamID) {
                     const data = {
-                        ID_team: teamID,    
-                        ID_action: actionID,
+                        ID_user: userID,    
+                        ID_team: teamID,
                     };
     
-                    fetch('./procesos/Teams_Actions/addTeamActionLink.php', {
+                    fetch('./procesos/UserTeam/createUserTeamLink.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -478,47 +589,16 @@
                         if (result.success) {
                             this.listData();
                         } else {
-                            console.error('Error al vincular la accion y quipo:', result.error);
+                            console.error('Error al vincular la usuario y equipo', result.error);
                         }
                     })
-                    .catch(error => console.error('Error al vincular la accion y quipo:', error));
+                    .catch(error => console.error('Error al vincular la usuario y equipo', error));
                 } else {
-                    console.error('Error: Debe ingresar un nombre de accion y equipo válidos.');
+                    console.error('Error: Debe ingresar un nombre de usuario y equipo válidos.');
                 }
-            }
-        }
-    
-        createUserTeamLink()
-        {
-            const userID = prompt('Ingrese el ID del usuario');
-            const teamID = prompt('Ingrese el ID del equipo');
-            if (userID && teamID) {
-                const data = {
-                    userID: userID,
-                    teamID: teamID,
-                };
+            
+            } 
         
-                fetch('./procesos/contactos/createUserTeamLink.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data),
-                })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.success) {
-                        console.log('Vinculación exitosa');
-                    } else {
-                        console.error('Error al vincular el usuario y el equipo:', result.error);
-                    }
-                })
-                .catch(error => console.error('Error al vincular el usuario y el equipo:', error));
-            } else {
-                console.error('Error: Debe ingresar IDs de usuario y equipo válidos.');
-            }
-        }
-
         // Método llamado cuando el componente es conectado al DOM
         connectedCallback() {
             this.listData();

@@ -1,17 +1,17 @@
 <?php 
-	// Incluir la clase TeamsActions
-	require_once "../../clases/TeamsActions.php";
+    // Incluir la clase TeamsActions
+	require_once "../../clases/UserTeam.php";
 
 	// Obtener los datos del POST en formato JSON y convertirlos a un array asociativo
 	$datos = json_decode(file_get_contents("php://input"), true);
 
-	// Verificar si se recibieron los datos esperados (ID_team y ID_action)
-	if (isset($datos['ID_team']) && isset($datos['ID_action'])) {
+	// Verificar si se recibieron los datos esperados (ID_user y ID_team)
+	if (isset($datos['ID_user']) && isset($datos['ID_team'])) {
 		// Crear una instancia de la clase TeamsActions
-		$userTeam = new TeamsActions();
+		$userTeam = new UserTeam();
 
 		// Llamar al método addTeamActionLink() y pasarle los datos
-		$resultado = $userTeam->addTeamActionLink($datos);
+		$resultado = $userTeam->createUserTeamLink($datos);
 		
 		// Devolver el resultado de la inserción como JSON
 		echo json_encode(['success' => $resultado]);
