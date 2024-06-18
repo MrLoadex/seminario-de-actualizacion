@@ -1,0 +1,139 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #0000002f;
+    color: #b8b8b8; /* Color de texto blanco */
+}
+
+/* Estilos adicionales para otros elementos según sea necesario */
+
+header {
+    background-color: #333;
+    color: white;
+    padding: 1em;
+}
+
+header nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+header nav ul li {
+    margin-right: 20px;
+}
+
+header nav ul li a {
+    color: #fff;
+    text-decoration: none;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
+
+nav ul li {
+    margin-right: 1em;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+}
+
+main {
+    display: flex;
+    flex: 1;
+}
+
+aside {
+    background-color: #f4f4f4;
+    padding: 1em;
+    width: 200px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+aside button, #refreshButton {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: none;
+    background-color: #0091ff;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+aside button:hover, #refreshButton:hover {
+    background-color: #0056b3;
+}
+
+section {
+    flex: 1;
+    padding: 1em;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1em;
+}
+
+table th, table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+table th {
+    background-color: #f2f2f2;
+}
+
+input[type="submit"], #saveButton {
+    background-color: #007BFF;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: block;
+    margin: 10px 0;
+}
+
+input[type="submit"]:hover, #saveButton:hover {
+    background-color: #0056b3;
+}
+
+input[type="checkbox"] {
+    margin: 10px 0;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+input[type="checkbox"]:checked {
+    background-color: #007BFF;
+    border-color: #007BFF;
+}
+
+#team-select {
+    font-size: 18px; /* Cambiar el tamaño de la fuente */
+    padding: 10px; /* Aumentar el relleno para hacerlo más grande */
+}

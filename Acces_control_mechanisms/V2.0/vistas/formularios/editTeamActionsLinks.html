@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Vinculación de Equipo y Acción</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<div class="form-container">
+    <h1>Vinculación de Equipo y Acción</h1>
+    <form action="/vinculateTeamAction.php" method="POST">
+        <label for="equipo">Equipo:</label>
+        <select id="equipo" name="equipo" required>
+            <option value="">Seleccione un equipo</option>
+            <option value="1">Equipo 1</option>
+            <option value="2">Equipo 2</option>
+            <option value="3">Equipo 3</option>
+            <!-- Agrega más opciones según tus equipos -->
+        </select>
+        <br>
+        <label for="acciones">Acciones Disponibles:</label>
+        <ul id="acciones">
+            <li><input type="checkbox" id="accion1" name="acciones[]" value="1"><label for="accion1"> Acción 1</label></li>
+            <li><input type="checkbox" id="accion2" name="acciones[]" value="2"><label for="accion2"> Acción 2</label></li>
+            <li><input type="checkbox" id="accion3" name="acciones[]" value="3"><label for="accion3"> Acción 3</label></li>
+            <!-- Agrega más acciones según tus necesidades -->
+        </ul>
+        <br>
+        <input type="submit" value="Vincular Equipo y Acción">
+    </form>
+</div>
+
+</body>
+</html>
+    

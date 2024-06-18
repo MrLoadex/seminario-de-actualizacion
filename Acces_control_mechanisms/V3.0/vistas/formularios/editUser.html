@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Vinculación de usuario y usuario </title>
+    <link rel="stylesheet" href="../../vistas/styles.css">
+</head>
+<body>
+
+    <div class="form-container">
+        <h1>Edicion de Usuario</h1>
+        <form id="formTeam" action="../../procesos/User/editUser.php" method="POST">
+            <br>
+            <label for="usuario"> Usuario:</label>
+            <select id="usuario" name="id" required>
+                <option value="">Seleccione un usuario</option>
+                <!-- Se agregan con js -->
+            </select>
+            <br>
+            <br>
+            <label for="usuario"> Nuevo nombre :</label>
+            <input type="text" id="newName" name="newName">
+            <br>
+            <input type="submit" value="Enviar">   
+        </form>
+    </div>
+    
+<script>
+    let usersData = [];
+   
+    // Geters
+    function getUserName(userID) {
+        return new Promise((resolve, reject) => {
+            if (typeof userID === 'string' && userID.trim() !== '') {
+                fetch(`../procesos/User/getUserById.php?id=${userID}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error en la respuesta de la red');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.error) {
+                            resolve("Sin Usuario");
+                        } else {
+                            resolve(data.name);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al obtener datos del usuario:', error);
+                        resolve("Sin Usuario");
+                    });
+            } else {
+                const errorMsg = 'Error: Debe ingresar un ID de usuario válido.';
+                console.error(errorMsg);
+                resolve("Sin Usuario");
+            }
+        });
+    }
+
+    function refreshUsersData() {
+        // Limpiar la lista antes de llenarla
+        usersData = [];
+    
+        // Realizar la solicitud para obtener todos los equipos
+        fetch('../../procesos/User/getAllUsers.php')
+            .then(response => response.json())
+            .then(data => {
+                // Verificar si se recibieron datos
+                if (Array.isArray(data)) {
+                    // Iterar sobre los datos y agregar a teamData
+                    data.forEach(user => {
+                        const current_user = { id: parseInt(user.ID), name: user.name };
+                        usersData.push(current_user);
+                    });
+                    
+                } else {
+                    console.error('Error: No se recibieron datos válidos.');
+                }
+                // Actualizar los usuarios disponibles
+                refreshUsersSelector();
+            })
+            .catch(error => console.error('Error al cargar los datos:', error));
+    }   
+    function refreshUsersSelector()
+    {
+        const selectElement = document.getElementById('usuario');
+        // Limpiar todas las opciones existentes
+        selectElement.innerHTML = '<option value="">Seleccione un usuario</option>'; // Limpiar opciones previas
+
+        // Completar el selector con los usuarios
+        usersData.forEach( (user) => {
+            const option = document.createElement('option');
+            option.value = user.id;
+            option.textContent = user.name;
+            selectElement.appendChild(option);
+        });
+    }
+  
+
+    // Obtener todos los equipos. Mostrar el name en los checkbox y guardar el ID.
+    refreshUsersData();
+
+</script>
+</body>
+</html>
+    

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Vinculación de Usuario y Grupo </title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<div class="form-container">
+    <h1>Vinculación de Usuario y Grupo</h1>
+    <form action="/vinculateUserTeam.php" method="POST">
+        <label for="usuario">usuario:</label>
+        <select id="usuario" name="usuario" required>
+            <option value="">Seleccione un usuario</option>
+            <option value="1">Usuario 1</option>
+            <option value="2">Usuario 2</option>
+            <option value="3">Usuario 3</option>
+            <!-- Agrega más opciones según tus equipos -->
+        </select>
+        <br>
+        <label for="grupos">Grupos Disponibles:</label>
+        <ul id="grupos">
+            <li><input type="checkbox" id="grupo1" name="grupos[]" value="1"><label for="grupo1"> Grupo 1</label></li>
+            <li><input type="checkbox" id="grupo2" name="grupos[]" value="2"><label for="grupo2"> Grupo 2</label></li>
+            <li><input type="checkbox" id="grupo3" name="grupos[]" value="3"><label for="grupo3"> Grupo 3</label></li>
+            <!-- Agrega más grupos según tus necesidades -->
+        </ul>
+        <br>
+        <input type="submit" value="Vincular Usuario y Grupo">
+    </form>
+</div>
+
+</body>
+</html>
+    

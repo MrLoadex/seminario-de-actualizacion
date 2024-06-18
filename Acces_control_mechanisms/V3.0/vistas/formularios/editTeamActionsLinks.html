@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Vinculación de Equipo y Acciones</title>
+    <link rel="stylesheet" href="../../vistas/styles.css">
+</head>
+<body>
+
+<div class="form-container">
+    <h1 id="team-title">Vinculación de Equipo y Acciones</h1>
+    <form>
+        <br>
+        <label for="acciones">Acciones Disponibles:</label>
+        <ul id="acciones">
+            <!-- Se agregan con JS -->
+        </ul>
+        <br>
+        <input id="saveButton" type="button" value="Guardar Vinculaciones" onclick="linkTeamActions()">
+    </form>
+</div>
+
+<script>
+    let teamActionsData = [];
+    let actionsData = [];
+    let teamId;
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const urlParams = new URLSearchParams(window.location.search);
+        teamId = urlParams.get('teamId');
+
+        if (teamId) {
+            // Obtener el nombre del equipo y actualizar el título
+            getTeamName(teamId).then(teamName => {
+                document.getElementById('team-title').textContent = `Vinculaciones - ${teamName}`;
+            });
+
+            // Cargar las acciones disponibles y las vinculadas
+            loadActions();
+            loadTeamActions(teamId);
+        }
+    });
+
+    function getTeamName(teamID) {
+        return new Promise((resolve, reject) => {
+            fetch(`../../procesos/Team/getTeamById.php?id=${teamID}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        resolve("Sin Equipo");
+                    } else {
+                        resolve(data.name);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al obtener datos del equipo:', error);
+                    resolve("Sin Equipo");
+                });
+        });
+    }
+
+    function loadActions() {
+        fetch('../../procesos/Action/getAllActions.php')
+            .then(response => response.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    actionsData = data;
+                    refreshActionsList();
+                } else {
+                    console.error('Error: No se recibieron datos válidos.');
+                }
+            })
+            .catch(error => console.error('Error al cargar las acciones:', error));
+    }
+
+    function loadTeamActions(teamId) {
+        fetch(`../../procesos/TeamActionLink/getTeamActionsByTeamId.php?teamId=${teamId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    teamActionsData = data;
+                    refreshActionsList();
+                } else {
+                    console.error('Error: No se recibieron datos válidos.');
+                }
+            })
+            .catch(error => console.error('Error al cargar las acciones del equipo:', error));
+    }
+
+    function refreshActionsList() {
+        const ulElement = document.getElementById('acciones');
+        ulElement.innerHTML = '';
+
+        actionsData.forEach(action => {
+            const li = document.createElement('li');
+
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.id = action.ID;
+            input.name = 'acciones[]';
+            input.value = action.ID;
+
+            if (teamActionsData.some(teamAction => teamAction.ID_action == action.ID)) {
+                input.checked = true;
+            }
+
+            const label = document.createElement('label');
+            label.htmlFor = ` ${action.name}`;
+            label.textContent = ` ${action.name}`;
+
+            li.appendChild(input);
+            li.appendChild(label);
+            ulElement.appendChild(li);
+        });
+    }
+
+    function createTeamActionLink(teamId, actionId) {
+        const data = { ID_team: teamId, ID_action: actionId };
+        console.log(data);
+        return fetch('../../procesos/TeamActionLink/createTeamActionLink.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                console.log('Vinculación de equipo y acción creada exitosamente.');
+            } else {
+                console.error('Error al crear la vinculación:', result.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error en la solicitud:', error);
+        });
+    }
+
+    function deleteTeamActionLink(teamId, actionId) {
+        const data = { ID_team: teamId, ID_action: actionId };
+
+        return fetch('../../procesos/TeamActionLink/deleteTeamActionLink.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                console.log('Desvinculación de equipo y acción eliminada exitosamente.');
+            } else {
+                console.error('Error al eliminar la vinculación:', result.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error en la solicitud:', error);
+        });
+    }
+
+    function linkTeamActions() {
+        let selectedActions = [];
+        let oldActions = teamActionsData.map(action => action.ID_action);
+
+        const checkboxes = document.querySelectorAll('#acciones input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                selectedActions.push(parseInt(checkbox.value));
+            }
+        });
+
+        oldActions.forEach(actionId => {
+            if (!selectedActions.includes(actionId)) {
+                deleteTeamActionLink(teamId, actionId);
+            }
+        });
+        selectedActions.forEach(actionId => {
+            if (!oldActions.includes(actionId)) {
+                createTeamActionLink(teamId, actionId);
+            }
+        });
+
+        alert('Vinculación exitosa');
+        loadTeamActions(teamId);
+    }
+</script>
+</body>
+</html>
