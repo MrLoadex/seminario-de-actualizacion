@@ -58,7 +58,7 @@ function refreshUsersTeamsData() {
                 let promises = data.map(user_team => {
                     return Promise.all([
                         getUserName(user_team.ID_user),
-                        getActionName(user_team.ID_team)
+                        getTeamName(user_team.ID_team)
                     ])
                     .then(([userName, teamName]) => {
                         // Buscar si el usuario ya está en usersTeamsData
@@ -313,7 +313,7 @@ function getUserName(userID) {
     });
 }
 
-function getActionName(teamID) {
+function getTeamName(teamID) {
     return new Promise((resolve, reject) => {
         if (teamID !== null && teamID.trim() !== '') {
             fetch(`../procesos/Team/getTeamById.php?id=${teamID}`)
