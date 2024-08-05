@@ -2,25 +2,105 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Formulario de Edicion de Equipo</title>
-    <link rel="stylesheet" href="../styles.css">
+    <title>Vinculación de grupo y Grupo </title>
+    <link rel="stylesheet" href="../../vistas/styles.css">
+</head>
 <body>
 
-<div class="form-container">
-    <h1>Formulario de Edicion de Equipo</h1>
-    <form action="/editTeam.php" method="POST">
+    <div class="form-container">
+        <h1>Edicion de Grupo</h1>
+        <form id="formTeam" action="../../procesos/Team/editTeam.php" method="POST">
+            <br>
+            <label for="grupo"> Grupo:</label>
+            <select id="grupo" name="id" required>
+                <option value="">Seleccione un grupo</option>
+                <!-- Se agregan con js -->
+            </select>
+            <br>
+            <br>
+            <label for="grupo"> Nuevo nombre :</label>
+            <input type="text" id="newName" name="newName">
+            <br>
+            <input type="submit" value="Enviar">   
+        </form>
+    </div>
+    
+<script>
+    let teamsData = [];
+   
+        // Geters
+   function getTeamName(teamID) {
+        return new Promise((resolve, reject) => {
+            if (teamID !== null && teamID.trim() !== '') {
+                fetch(`../../procesos/Team/getTeamById.php?id=${teamID}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error en la respuesta de la red');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.error) {
+                            resolve("Sin Equipo");
+                        } else {
+                            resolve(data.name);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al obtener datos del equipo:', error);
+                        resolve("Sin Equipo");
+                    });
+            } else {
+                console.warn('Advertencia: Debe ingresar un ID de equipo válido.');
+                resolve("Sin Equipo");
+            }
+        });
+    }
 
-        <label for="id">ID:</label>
-        <input type="text" id="id" name="id" placeholder="ID" required>
-        <p></p>
+    function refreshTeamsData() {
+        // Limpiar la lista antes de llenarla
+        teamsData = [];
+    
+        // Realizar la solicitud para obtener todos los equipos
+        fetch('../../procesos/Team/getAllTeams.php')
+            .then(response => response.json())
+            .then(data => {
+                // Verificar si se recibieron datos
+                if (Array.isArray(data)) {
+                    // Iterar sobre los datos y agregar a teamData
+                    data.forEach(team => {
+                        const current_team = { id: parseInt(team.ID), name: team.name };
+                        teamsData.push(current_team);
+                    });
+                    
+                } else {
+                    console.error('Error: No se recibieron datos válidos.');
+                }
+                // Actualizar los grupos disponibles
+                refreshTeamsSelector();
+            })
+            .catch(error => console.error('Error al cargar los datos:', error));
+    }   
+    function refreshTeamsSelector()
+    {
+        const selectElement = document.getElementById('grupo');
+        // Limpiar todas las opciones existentes
+        selectElement.innerHTML = '<option value="">Seleccione un grupo</option>'; // Limpiar opciones previas
 
-        <label for="nombre">Nuevo Nombre:</label>
-        <input type="text" id="nombre" name="nombre" placeholder="Nombre" required>
-        <p></p>
+        // Completar el selector con los grupos
+        teamsData.forEach( (team) => {
+            const option = document.createElement('option');
+            option.value = team.id;
+            option.textContent = team.name;
+            selectElement.appendChild(option);
+        });
+    }
+  
 
-        <input type="submit" value="Enviar">
-    </form>
-</div>
+    // Obtener todos los equipos. Mostrar el name en los checkbox y guardar el ID.
+    refreshTeamsData();
 
+</script>
 </body>
 </html>
+    

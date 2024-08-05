@@ -3,34 +3,377 @@
 <head>
     <meta charset="UTF-8">
     <title>Vinculación de Usuario y Grupo </title>
-    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../../vistas/styles.css">
 </head>
 <body>
 
 <div class="form-container">
     <h1>Vinculación de Usuario y Grupo</h1>
-    <form action="/vinculateUserTeam.php" method="POST">
-        <label for="usuario">usuario:</label>
+    <form action>
+        <br>
+        <label for="usuario"> Usuario:</label>
         <select id="usuario" name="usuario" required>
             <option value="">Seleccione un usuario</option>
-            <option value="1">Usuario 1</option>
-            <option value="2">Usuario 2</option>
-            <option value="3">Usuario 3</option>
-            <!-- Agrega más opciones según tus equipos -->
+            <!-- Se agregan con js -->
         </select>
         <br>
         <label for="grupos">Grupos Disponibles:</label>
         <ul id="grupos">
-            <li><input type="checkbox" id="grupo1" name="grupos[]" value="1"><label for="grupo1"> Grupo 1</label></li>
-            <li><input type="checkbox" id="grupo2" name="grupos[]" value="2"><label for="grupo2"> Grupo 2</label></li>
-            <li><input type="checkbox" id="grupo3" name="grupos[]" value="3"><label for="grupo3"> Grupo 3</label></li>
-            <!-- Agrega más grupos según tus necesidades -->
+            <!-- Se agregan con JS -->
         </ul>
         <br>
-        <input type="submit" value="Vincular Usuario y Grupo">
+        <input id="saveButton" type="button" value="Guardar Vinculaciones" onclick="linkUserTeam()">
+
     </form>
 </div>
 
+
+<script>
+    let usersTeamsData = [];
+    let teamsData = [];
+   
+        // Geters
+    function getUserName(userID) {
+        return new Promise((resolve, reject) => {
+            if (typeof userID === 'string' && userID.trim() !== '') {
+                fetch(`../../procesos/User/getUserById.php?id=${userID}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error en la respuesta de la red');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.error) {
+                            resolve("Sin Usuario");
+                        } else {
+                            resolve(data.name);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al obtener datos del usuario:', error);
+                        resolve("Sin Usuario");
+                    });
+            } else {
+                const errorMsg = 'Error: Debe ingresar un ID de usuario válido.';
+                console.error(errorMsg);
+                resolve("Sin Usuario");
+            }
+        });
+    }         
+    function getTeamName(teamID) {
+        return new Promise((resolve, reject) => {
+            if (teamID !== null && teamID.trim() !== '') {
+                fetch(`../../procesos/Team/getTeamById.php?id=${teamID}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error en la respuesta de la red');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.error) {
+                            resolve("Sin Equipo");
+                        } else {
+                            resolve(data.name);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al obtener datos del equipo:', error);
+                        resolve("Sin Equipo");
+                    });
+            } else {
+                console.warn('Advertencia: Debe ingresar un ID de equipo válido.');
+                resolve("Sin Equipo");
+            }
+        });
+    }
+
+    function refreshUsersTeamsData() {
+        // Limpiar la lista antes de usarla
+        usersTeamsData = [];
+    
+        // Realizar la solicitud para obtener todos los vínculos de usuarios con equipos
+        fetch('../../procesos/UserTeamLink/getAllUsersTeams.php')
+            .then(response => response.json())
+            .then(data => {
+                // Verificar si se recibieron datos
+                if (Array.isArray(data)) {
+                    // Crear una lista de promesas para todas las solicitudes de nombres de usuario y equipos
+                    let promises = data.map(user_team => {
+                        return Promise.all([
+                            getUserName(user_team.ID_user),
+                            getTeamName(user_team.ID_team)
+                        ])
+                        .then(([userName, teamName]) => {
+                            // Buscar si el usuario ya está en usersTeamsData
+                            let user = usersTeamsData.find(user => user.id === user_team.ID_user);
+    
+                            if (user) {
+                                // Si el usuario existe, agregar/actualizar el equipo
+                                user[teamName] = true;
+                            } else {
+                                // Si el usuario no existe, crear un nuevo objeto de usuario
+                                let newUser = { id: user_team.ID_user, name: userName, [teamName]: true };
+                                usersTeamsData.push(newUser);
+                            }
+                        });
+                    });
+    
+                    // Esperar a que todas las promesas se resuelvan
+                    Promise.all(promises).then(() => {
+                        // Refrescar los usuarios sin equipo
+                        refreshUsersOutGroup();
+                    });
+                } else {
+                    console.error('Error: No se recibieron datos válidos.');
+                }
+            })
+            .catch(error => console.error('Error al cargar los datos:', error));
+    }
+    function refreshUsersOutGroup()
+{
+
+    // Realizar la solicitud para obtener todos los equipos
+    fetch('../../procesos/User/getAllUsers.php')
+        .then(response => response.json())
+        .then(data => {
+            // Verificar si se recibieron datos
+            if (Array.isArray(data)) {
+                // Iterar sobre los datos y agregar a teamData
+                data.forEach(user => {
+                    let userExistente = usersTeamsData.find(userBuscado => userBuscado.id === user.ID);
+                    if(userExistente)
+                    {
+                        //console.log('el usuario: ' + user.name + ' ya existe.');
+                    }
+                    else
+                    {
+                        const current_user = { id: user.ID, name: user.name };
+                        usersTeamsData.push(current_user);
+                    }
+                    
+                });
+                
+            } else {
+                console.error('Error: No se recibieron datos válidos.');
+            }
+            // Actualizar los usuarios disponibles
+            refreshUserSelector();
+        })
+        .catch(error => console.error('Error al cargar los datos:', error));
+}      
+    function refreshUserSelector()
+    {
+        const selectElement = document.getElementById('usuario');
+        // Limpiar todas las opciones existentes
+        selectElement.innerHTML = '<option value="">Seleccione un usuario</option>'; // Limpiar opciones previas
+
+        // Completar el selector con los usuarios
+        usersTeamsData.forEach( (user) => {
+            const option = document.createElement('option');
+            option.value = user.id;
+            option.textContent = user.name;
+            selectElement.appendChild(option);
+
+
+        });
+    }
+    
+    function refreshTeamsData() {
+        // Limpiar la lista antes de llenarla
+        teamsData = [];
+    
+        // Realizar la solicitud para obtener todos los equipos
+        fetch('../../procesos/Team/getAllTeams.php')
+            .then(response => response.json())
+            .then(data => {
+                // Verificar si se recibieron datos
+                if (Array.isArray(data)) {
+                    // Iterar sobre los datos y agregar a teamData
+                    data.forEach(team => {
+                        const current_team = { id: parseInt(team.ID), name: team.name };
+                        teamsData.push(current_team);
+                    });
+                    
+                } else {
+                    console.error('Error: No se recibieron datos válidos.');
+                }
+                // Actualizar los grupos disponibles
+                refreshAviableTeams();
+            })
+            .catch(error => console.error('Error al cargar los datos:', error));
+    }   
+    function refreshAviableTeams()
+    {
+        const ulElement = document.getElementById('grupos');
+        ulElement.innerHTML = '';
+
+         teamsData.forEach(grupo => {
+                const li = document.createElement('li');
+
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.id = grupo.id;
+                input.name = 'grupos[]';
+                input.value = grupo.name;
+
+                const label = document.createElement('label');
+                label.htmlFor = ` ${grupo.name}`;
+                label.textContent = ` ${grupo.name}`;
+
+                li.appendChild(input);
+                li.appendChild(label);
+                ulElement.appendChild(li);
+            });
+        }
+    
+    // Chequear que usuario se selecciono.
+    document.getElementById('usuario').addEventListener('change', function() {
+        
+        const selectedUserId =  document.getElementById('usuario').value;
+        refreshActualTeamsByUserId(selectedUserId);   
+    });   
+    // FUNCION Seleccionar los equipos a los que pertenece
+    function refreshActualTeamsByUserId(id)
+    {
+
+        let user = usersTeamsData.find(user => user.id == id);
+        
+        // Desmarcar todos los checkboxes
+        const checkboxes = document.querySelectorAll('#grupos input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        }); 
+
+        // Marcar los checkboxes según el usuario seleccionado
+        for (const key in user) {
+            if (user[key] == true && key != 'id') {
+                const teamID = teamsData.find(team => team.name == key).id;
+                const checkbox = document.querySelector(`#grupos input[name="grupos[]"][id="${teamID}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            }
+        }
+
+    }
+
+    // Agregado de userTeamLink a la tabla
+    function createUserTeamLink(userId, teamId) {
+        const data = { ID_user: userId, ID_team: teamId };
+    
+        return fetch('../../procesos/UserTeamLink/createUserTeamLink.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                console.log('Vinculación de usuario y equipo creada exitosamente.');
+            } else {
+                console.error('Error al crear la vinculación:', result.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error en la solicitud:', error);
+        });
+    }
+    // Eliminado de userTeamLink a la tabla
+    function deleteUserTeamLink(userId, teamId) {
+        const data = { ID_user: userId, ID_team: teamId };
+    
+        return fetch('../../procesos/UserTeamLink/deleteUserTeamLink.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                console.log('Desvinculación de usuario y equipo creada exitosamente.');
+            } else {
+                console.error('Error al eliminar la vinculación:', result.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error en la solicitud:', error);
+        });
+    }
+    // FUNCION Crear una vinculacion nueva, eliminar la vinculacion actual
+    function linkUserTeam()
+    {
+        // COMPROBACIONES DE SEGURIDAD, QUE EL USER ESTE SELECCIONADO
+
+
+        // array donde se guardaran los grupos seleccionados
+        let selectedTeams = [];
+        // array donde se guardaran los grupos originales
+        let oldTeams = [];
+        // Extraer al usuario seleccionado
+        user = usersTeamsData.find(user => user.id === document.getElementById('usuario').value);
+        // Extraer los grupos del chechbox
+        const checkboxes = document.querySelectorAll('#grupos input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            //comprobar si es true para guardarlo
+            if (checkbox.checked)
+            {
+                const team = { id: checkbox.id, name: checkbox.value};
+                selectedTeams.push(team);
+            }
+        });
+        // Extraer grupos originales
+        for (dato in user)
+        {
+            if(user[dato] == true && dato != 'id')
+            {
+                const teamID = (teamsData.find(team => team.name == dato)).id;
+                const team =  { id: teamID, name: dato};
+                oldTeams.push(team);
+            }
+        }
+
+        // Recorrer oldTeams y comparar con selectedTeams para realizar eliminaciones si no estan algunos de los viejos.
+        for( let i = 0; i < oldTeams.length; i++)
+        {
+            //buscar en los nuevos
+            team = selectedTeams.find(team => team.id == oldTeams[i].id);
+            if(team == undefined)
+            {
+                //Borrado de la tabla
+                deleteUserTeamLink(user.id, oldTeams[i].id);
+                
+            }
+        }
+        // Realizar selectedTeam y comprobar con oldTeam para realizar agregaciones de todos los que no esten en los viejos.
+        for( let i = 0; i < selectedTeams.length; i++)
+        {
+            //buscar si el team actual estava en los viejos
+            team = oldTeams.find(team => team.id == selectedTeams[i].id);
+            if(team == undefined)
+            {
+                //Agregado de la tabla
+                createUserTeamLink(user.id, selectedTeams[i].id);
+            }
+        }
+        // Aviso al usuario que todo salio bien
+        alert('Vinculación exitosa');
+        //Resetear lista
+        refreshUsersTeamsData();
+        refreshAviableTeams();
+    }
+
+    // Obtener todos los usuarios. Mostrar el name en el selector y guardar el ID.
+    refreshUsersTeamsData();
+    // Obtener todos los equipos. Mostrar el name en los checkbox y guardar el ID.
+    refreshTeamsData();
+
+</script>
 </body>
 </html>
     

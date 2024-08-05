@@ -5,7 +5,11 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    background-color: #0000002f;
+    color: #b8b8b8; /* Color de texto blanco */
 }
+
+/* Estilos adicionales para otros elementos según sea necesario */
 
 header {
     background-color: #333;
@@ -57,19 +61,19 @@ aside {
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
 }
 
-aside button {
+aside button, #refreshButton {
     display: block;
     width: 100%;
     padding: 10px;
     margin-bottom: 10px;
     border: none;
-    background-color: #007BFF;
+    background-color: #0091ff;
     color: white;
     cursor: pointer;
     border-radius: 5px;
 }
 
-aside button:hover {
+aside button:hover, #refreshButton:hover {
     background-color: #0056b3;
 }
 
@@ -95,7 +99,7 @@ table th {
     background-color: #f2f2f2;
 }
 
-input[type="submit"] {
+input[type="submit"], #saveButton {
     background-color: #007BFF;
     color: white;
     padding: 10px 15px;
@@ -103,10 +107,12 @@ input[type="submit"] {
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    display: block;
+    margin: 10px 0;
 }
 
-input[type="submit"]:hover {
-    background-color: #007BFF;
+input[type="submit"]:hover, #saveButton:hover {
+    background-color: #0056b3;
 }
 
 input[type="checkbox"] {
@@ -116,8 +122,18 @@ input[type="checkbox"] {
     cursor: pointer;
 }
 
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
 input[type="checkbox"]:checked {
     background-color: #007BFF;
     border-color: #007BFF;
 }
 
+#team-select {
+    font-size: 18px; /* Cambiar el tamaño de la fuente */
+    padding: 10px; /* Aumentar el relleno para hacerlo más grande */
+}

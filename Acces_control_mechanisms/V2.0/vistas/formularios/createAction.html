@@ -9,13 +9,16 @@
 
 <div class="form-container">
     <h1>Formulario de Creación de Acción</h1>
-    <form action="/createAction.php" method="POST">
-        <label for="nombre-accion">Nombre de la Acción:</label>
-        <input type="text" id="nombre-accion" name="nombre-accion" placeholder="Nombre de la Acción" required>
+    <form id="formUsuario" action="../../procesos/Action/createAction.php" method="POST">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" placeholder="Name" required>
         <p></p>
-        <input type="submit" value="Crear Acción">
+        <input type="submit" value="Enviar">   
     </form>
 </div>
 
 </body>
 </html>
+
+
+
