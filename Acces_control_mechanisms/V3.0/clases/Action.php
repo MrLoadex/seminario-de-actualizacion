@@ -7,17 +7,11 @@ class Action extends Connection {
 
     // Método para obtener todos los contactos (usuarios) de la base de datos
     public function getAllActions() {
-        // Establecer la conexión a la base de datos
+
         $conexion = $this->connect();
-    
-        // Definir la consulta SQL para obtener todos los registros de la tabla `user`
         $sql = "SELECT * FROM `action`";
-        // Ejecutar la consulta
         $result = $conexion->query($sql);
-    
-        // Inicializar un array para almacenar los resultados
         $Actions = array();
-        // Recorrer los resultados y agregarlos al array $usuarios
         while ($row = $result->fetch_assoc()) {
             $Actions[] = $row;
         }
@@ -25,7 +19,6 @@ class Action extends Connection {
         // Devolver el array de usuarios
         return $Actions;
     }
-
     // Método para agregar un nuevo contacto (usuario) a la base de datos
     public function createAction($datos) {
         
@@ -36,7 +29,6 @@ class Action extends Connection {
         $respuesta = $query->execute();
         return $respuesta;
     } 
-
     // Método para obtener los datos de un contacto (usuario) por ID
     public function getActionByID($ID) {
         

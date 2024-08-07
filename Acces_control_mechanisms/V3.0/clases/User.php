@@ -8,6 +8,7 @@ class User extends Connection {
     // Método para obtener todos los contactos (usuarios) de la base de datos
     public function getAllUsers() 
     {
+        $this->verifyLogin();
         // Establecer la conexión a la base de datos
         $connection = $this->connect();
     
@@ -47,6 +48,7 @@ class User extends Connection {
 
     public function deleteUser($idUser)
     {
+        $this->verifyLogin();
         $conexion = Connection::connect();
 
         // Consulta para verificar si el usuario está siendo utilizado en user_team
@@ -82,6 +84,7 @@ class User extends Connection {
 
     public function editUser($ID, $newName)
     {
+        $this->verifyLogin();
         // Establecer la conexión a la base de datos
         $conexion = Connection::connect();
         $sql = "CALL update_user(?, ?)";
@@ -120,7 +123,6 @@ class User extends Connection {
     }
 
     public function getUserIDByName($p_name) {
-
         $conexion = Connection::connect();
         $sql = "CALL get_userID_by_name(?)";
         $query = $conexion->prepare($sql);
@@ -132,6 +134,17 @@ class User extends Connection {
         // Devolver los datos del contacto
         return $userID;
     }
+
+    // Método para verificar la sesión del usuario
+    public function verifyLogin() {
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            http_response_code(403);
+            echo json_encode(['error' => 'No tienes permiso para acceder a esta página.']);
+            exit();
+        }
+    }
+    
     
 }
 ?>
