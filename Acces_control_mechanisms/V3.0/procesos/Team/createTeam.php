@@ -13,10 +13,10 @@ if (!empty($nombre)) {
     ];
 
     // Crear una instancia de la clase Users
-    $actions = new Team();
+    $users = new Team();
 
     // Llamar al método createUser() y pasarle los datos
-    $resultado = $actions->createTeam($datos);
+    $resultado = $users->createTeam($datos);
 
     // Devolver el resultado de la inserción como JSON
     echo json_encode('Equipo creado con exito');

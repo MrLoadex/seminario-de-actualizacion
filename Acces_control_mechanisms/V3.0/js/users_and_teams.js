@@ -87,7 +87,6 @@ function refreshUsersTeamsData() {
         .catch(error => console.error('Error al cargar los datos:', error));
 }
 
-
 function refreshUsersOutGroup()
 {
 

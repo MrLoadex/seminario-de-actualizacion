@@ -6,14 +6,9 @@
 
 	// Verificar si se proporcionó un ID de contacto válido
 	if(isset($ID) && !empty($ID)) {
-		// Crear una instancia de la clase Contactos
-		$teamActionLinkInstance = new User();
-
-		// Obtener los datos del contacto
-		$teamActionLinks = $teamActionLinkInstance->getUserById($ID);
-
-		// Devolver los datos del contacto como JSON
-		echo json_encode($teamActionLinks);
+		$userInstance = new User();
+		$acces = $userInstance->getUserById($ID);
+		echo json_encode($acces);
 	} else {
 		// Devolver un mensaje de error si no se proporcionó un ID válido
 		echo json_encode(array('error' => 'No se proporcionó un ID de contacto válido.'));

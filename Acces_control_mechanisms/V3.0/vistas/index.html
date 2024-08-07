@@ -3,39 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Usuarios y Equipos</title>
+    <title>Login - Gestión de Usuarios y Equipos</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <nav>
-            <ul>
-                <li><a href="#">Home</a></li>
-                <li><a href="actions.html">Actions</a></li>
-            </ul>
-        </nav>
-    </header>
-    <main>
-        <aside>
-            <button id="createUserButton">Create User</button>
-            <button id="editUserButton">Edit User</button>
-            <button id="deleteUserButton">Delete User</button>
-            <button id="createTeamButton">Create Team</button>
-            <button id="editTeamButton">Edit Team</button>
-            <button id="deleteTeamButton">Delete Team</button>
-            <button id="editUserTeamLinksButton">Edit User Team Links</button>
-        </aside>
-        <section>
-            <table id="usersTeamTable">
-                <thead>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-            <br>
-            <button id="refreshButton">Refresh</button>
-        </section>
+    <main class="login-container">
+        <div class="login-box">
+            <h2>Iniciar Sesión</h2>
+            <form id="loginForm" onsubmit="return handleLogin(event)">
+                <label for="username">Usuario:</label>
+                <input type="text" id="username" name="username" required>
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" name="password" required>
+                <button type="submit">Login</button>
+            </form>
+            <p>¿No estás registrado? <a href="./formularios/createUser.html" target="_blank">Haz clic aquí</a></p>
+        </div>
     </main>
-    <script src="../js/users_and_teams.js"></script>
+    <script>
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password);
+
+            try {
+                const response = await fetch('../procesos/User/login.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Después de un inicio de sesión exitoso
+
+                    sessionStorage.setItem('username', username);
+                    sessionStorage.setItem('password', password);
+                    
+                    alert('Inicio de sesión exitoso');
+                    window.location.href = 'users.html';
+                } else {
+                    alert('Usuario o contraseña incorrectos');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al enviar los datos');
+            }
+        }
+    </script>
 </body>
 </html>

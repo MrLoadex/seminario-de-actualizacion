@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios y Equipos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="actions.html">Actions</a></li>
+                <li><a href="../procesos/logout.php">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <aside>
+            <button id="createUserButton">Create User</button>
+            <button id="editUserButton">Edit User</button>
+            <button id="deleteUserButton">Delete User</button>
+            <button id="createTeamButton">Create Team</button>
+            <button id="editTeamButton">Edit Team</button>
+            <button id="deleteTeamButton">Delete Team</button>
+            <button id="editUserTeamLinksButton">Edit User Team Links</button>
+        </aside>
+        <section>
+            <table id="usersTeamTable">
+                <thead>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <br>
+            <button id="refreshButton">Refresh</button>
+        </section>
+    </main>
+    <script src="../js/login.js"></script>
+    <script src="../js/users_and_teams.js"></script>
+</body>
+</html>

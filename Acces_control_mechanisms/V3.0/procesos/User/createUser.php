@@ -1,27 +1,21 @@
 <?php
-// Incluir la clase Users
 require_once "../../clases/User.php";
 
 // Obtener los datos del POST en formato de array
-$nombre = $_POST['name']; // Obtener el nombre del formulario
+$nombre = $_POST['name'];
+$password = $_POST['password'];
 
-// Verificar si se recibió el nombre
-if (!empty($nombre)) {
-    // Crear un array asociativo con los datos recibidos
+// Verificar si se recibieron el nombre y la contraseña
+if (!empty($nombre) && !empty($password)) {
     $datos = [
-        'name' => $nombre
+        'name' => $nombre,
+        'password' => $password
     ];
 
-    // Crear una instancia de la clase Users
-    $actions = new User();
-
-    // Llamar al método createUser() y pasarle los datos
-    $resultado = $actions->createUser($datos);
-
-    // Devolver el resultado de la inserción como JSON
+    $users = new User();
+    $resultado = $users->createUser($datos);
     echo json_encode(['success' => $resultado]);
 } else {
-    // Devolver un mensaje de error si el nombre está vacío
-    echo json_encode(['error' => 'El nombre está vacío']);
+    echo json_encode(['error' => 'El nombre o la contraseña están vacíos']);
 }
 ?>

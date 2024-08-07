@@ -13,10 +13,10 @@ if (!empty($nombre)) {
     ];
 
     // Crear una instancia de la clase Users
-    $actions = new Action();
+    $users = new Action();
 
     // Llamar al método createUser() y pasarle los datos
-    $resultado = $actions->createAction($datos);
+    $resultado = $users->createAction($datos);
 
     // Devolver el resultado de la inserción como JSON
     echo json_encode(['success' => $resultado]);

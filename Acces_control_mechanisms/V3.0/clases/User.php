@@ -12,7 +12,7 @@ class User extends Connection {
         $connection = $this->connect();
     
         // Definir la consulta SQL para obtener todos los registros de la tabla `user`
-        $sql = "SELECT * FROM `user`";
+        $sql = "CALL get_all_users";
         // Ejecutar la consulta
         $result = $connection->query($sql);
     
@@ -29,33 +29,30 @@ class User extends Connection {
 
     // Método para agregar un nuevo contacto (usuario) a la base de datos
     public function createUser($datos) {
-        // Establecer la conexión a la base de datos
+        
+        $patron ="/^[a-zA-Z]\w{3,14}$/";
+        if (!preg_match($patron, $datos["password"]))
+        {
+            return "Contraseña no válida";
+        }
+
         $conexion = Connection::connect();
-    
-        // Definir la consulta SQL para insertar un nuevo registro en la tabla `user`
-        $sql = "INSERT INTO `user` (name) VALUES (?)";
-        // Preparar la consulta
+        $sql = "CALL create_user(?, ?)";
         $query = $conexion->prepare($sql);
-        
-        // Enlazar los parámetros con los valores proporcionados
-        // 'ss' indica que estamos enlazando dos variables de tipo string
-        $query->bind_param('s', $datos['name']);
-        
-        // Ejecutar la consulta
+        $query->bind_param('ss', $datos['name'], $datos['password']);
         $respuesta = $query->execute();
-        // Devolver la respuesta de la ejecución (true o false)
         return $respuesta;
     }
 
+
     public function deleteUser($idUser)
     {
-        // Establecer la conexión a la base de datos
         $conexion = Connection::connect();
 
         // Consulta para verificar si el usuario está siendo utilizado en user_team
         $sqlCheckDependencies = "SELECT COUNT(*) AS count FROM user_team WHERE ID_user = ?";
         $queryCheckDependencies = $conexion->prepare($sqlCheckDependencies);
-        $queryCheckDependencies->bind_param('i', $idUser); // Usar $idUser en lugar de $ID
+        $queryCheckDependencies->bind_param('i', $idUser);
         $queryCheckDependencies->execute();
         $result = $queryCheckDependencies->get_result();
         $row = $result->fetch_assoc();
@@ -71,9 +68,9 @@ class User extends Connection {
             $conexion->query('SET FOREIGN_KEY_CHECKS = 0');
 
             // Eliminar el registro de la tabla principal
-            $sqlDeleteUser = "DELETE FROM user WHERE ID = ?";
+            $sqlDeleteUser = "CALL delete_user(?)";
             $queryDeleteUser = $conexion->prepare($sqlDeleteUser);
-            $queryDeleteUser->bind_param('i', $idUser); // Usar $idUser en lugar de $ID
+            $queryDeleteUser->bind_param('i', $idUser);
             $respuesta = $queryDeleteUser->execute();
 
             // Volver a activar las restricciones de clave externa
@@ -87,38 +84,54 @@ class User extends Connection {
     {
         // Establecer la conexión a la base de datos
         $conexion = Connection::connect();
-    
-        // Preparar la consulta para actualizar el nombre del usuario
-        $sql = "UPDATE user SET name = ? WHERE ID = ?";
+        $sql = "CALL update_user(?, ?)";
         $query = $conexion->prepare($sql);
         $query->bind_param('si', $newName, $ID);
-        
-        // Ejecutar la consulta y obtener el resultado
         $respuesta = $query->execute();
         return $respuesta;
     }
 
     // Método para obtener los datos de un contacto (usuario) por ID
     public function getUserById($ID) {
-        // Establecer la conexión a la base de datos
+       
         $conexion = Connection::connect();
-
-        // Definir la consulta SQL para obtener un registro de la tabla `user` por ID
-        $sql = "SELECT ID, name FROM `user` WHERE ID = ?";
-        // Preparar la consulta
+        $sql = "CALL get_username_by_id(?)";
         $query = $conexion->prepare($sql);
-        // Enlazar el parámetro ID con el valor proporcionado
         $query->bind_param('i', $ID);
-        // Ejecutar la consulta
         $query->execute();
-        // Obtener el resultado de la consulta
         $result = $query->get_result();
-        
-        // Obtener los datos del contacto en un array asociativo
         $user = $result->fetch_assoc();
+        return $user;
+    }
+    
+    public function checkUserAndPass($user, $password)
+    {
+        $conexion = Connection::connect();
+        $sql = "CALL check_user_and_password(?, ?)";
+        $query = $conexion->prepare($sql);
+        $query->bind_param('ss', $user, $password);
+        $query->execute();
+        $result = $query->get_result();
+        if ($result->num_rows > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function getUserIDByName($p_name) {
+
+        $conexion = Connection::connect();
+        $sql = "CALL get_userID_by_name(?)";
+        $query = $conexion->prepare($sql);
+        $query->bind_param('s', $p_name);
+        $query->execute();
+        $result = $query->get_result();
+        $userID = $result->fetch_assoc();
 
         // Devolver los datos del contacto
-        return $user;
-    }  
+        return $userID;
+    }
+    
 }
 ?>
